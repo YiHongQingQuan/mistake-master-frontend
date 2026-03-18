@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>错题整理大师 - 登录</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .login-card {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .login-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+        .input-focus {
+            @apply focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none;
+        }
+        .btn-primary {
+            @apply bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50;
+        }
+        .btn-secondary {
+            @apply bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition duration-300 ease-in-out;
+        }
+        .error-message {
+            @apply text-red-500 text-sm mt-1;
+        }
+        .success-message {
+            @apply text-green-500 text-sm mt-1;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-md mx-auto">
+            <!-- Login Card -->
+            <div class="login-card bg-white rounded-2xl p-8">
+                <!-- Logo and Title -->
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-full mb-4">
+                        <i class="fa fa-book text-2xl text-indigo-600"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800">错题整理大师</h2>
+                    <p class="text-gray-500 mt-2">请登录您的账户</p>
+                </div>
+
+                <!-- Login Form -->
+                <form id="loginForm" class="space-y-6">
+                    <!-- Username/Email Input -->
+                    <div>
+                        <label for="username" class="block text-sm font-medium text-gray-700 mb-1">用户名或邮箱</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa fa-user text-gray-400"></i>
+                            </div>
+                            <input type="text" id="username" name="username" class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg input-focus" placeholder="请输入用户名或邮箱" required>
+                        </div>
+                        <div id="usernameError" class="error-message hidden"></div>
+                    </div>
+
+                    <!-- Password Input -->
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">密码</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa fa-lock text-gray-400"></i>
+                            </div>
+                            <input type="password" id="password" name="password" class="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg input-focus" placeholder="请输入密码" required>
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <button type="button" id="togglePassword" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                                    <i class="fa fa-eye-slash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="passwordError" class="error-message hidden"></div>
+                    </div>
+
+                    <!-- Remember Me and Forgot Password -->
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <input id="rememberMe" name="rememberMe" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                            <label for="rememberMe" class="ml-2 block text-sm text-gray-700">记住我</label>
+                        </div>
+                        <div class="text-sm">
+                            <a href="#" id="forgotPassword" class="font-medium text-indigo-600 hover:text-indigo-500">忘记密码?</a>
+                        </div>
+                    </div>
+
+                    <!-- Login Button -->
+                    <div>
+                        <button type="submit" id="loginButton" class="btn-primary w-full">
+                            <i class="fa fa-sign-in mr-2"></i>登录
+                        </button>
+                    </div>
+
+                    <!-- Error/Success Message -->
+                    <div id="formMessage" class="text-center hidden"></div>
+                </form>
+
+                <!-- Register Link -->
+                <div class="mt-6 text-center">
+                    <p class="text-sm text-gray-600">
+                        还没有账户? <a href="#" id="registerLink" class="font-medium text-indigo-600 hover:text-indigo-500">立即注册</a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="mt-8 text-center text-white text-sm">
+                <p>© 2026 错题整理大师. 保留所有权利.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgotPasswordModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800">忘记密码</h3>
+                <button id="closeForgotModal" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                    <i class="fa fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="forgotPasswordForm" class="space-y-4">
+                <div>
+                    <label for="forgotEmail" class="block text-sm font-medium text-gray-700 mb-1">邮箱地址</label>
+                    <input type="email" id="forgotEmail" name="forgotEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus" placeholder="请输入您的邮箱地址" required>
+                    <div id="forgotEmailError" class="error-message hidden"></div>
+                </div>
+                <div>
+                    <button type="submit" class="btn-primary w-full">
+                        <i class="fa fa-envelope mr-2"></i>发送重置链接
+                    </button>
+                </div>
+                <div id="forgotMessage" class="text-center hidden"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800">注册账户</h3>
+                <button id="closeRegisterModal" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                    <i class="fa fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="registerForm" class="space-y-4">
+                <div>
+                    <label for="regUsername" class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
+                    <input type="text" id="regUsername" name="regUsername" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus" placeholder="请输入用户名" required>
+                    <div id="regUsernameError" class="error-message hidden"></div>
+                </div>
+                <div>
+                    <label for="regPassword" class="block text-sm font-medium text-gray-700 mb-1">密码</label>
+                    <div class="relative">
+                        <input type="password" id="regPassword" name="regPassword" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus" placeholder="请输入密码（至少6位）" required>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <button type="button" id="toggleRegPassword" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                                <i class="fa fa-eye-slash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="regPasswordError" class="error-message hidden"></div>
+                </div>
+                <div>
+                    <button type="submit" class="btn-primary w-full">
+                        <i class="fa fa-user-plus mr-2"></i>注册
+                    </button>
+                </div>
+                <div id="regMessage" class="text-center hidden"></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // API Base URL
+        const API_BASE = 'https://test-production-8b64.up.railway.app';
+
+        // DOM Elements
+        const loginForm = document.getElementById('loginForm');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const togglePassword = document.getElementById('togglePassword');
+        const rememberMe = document.getElementById('rememberMe');
+        const loginButton = document.getElementById('loginButton');
+        const formMessage = document.getElementById('formMessage');
+        const usernameError = document.getElementById('usernameError');
+        const passwordError = document.getElementById('passwordError');
+        const forgotPassword = document.getElementById('forgotPassword');
+        const forgotPasswordModal = document.getElementById('forgotPasswordModal');
+        const closeForgotModal = document.getElementById('closeForgotModal');
+        const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+        const forgotEmail = document.getElementById('forgotEmail');
+        const forgotEmailError = document.getElementById('forgotEmailError');
+        const forgotMessage = document.getElementById('forgotMessage');
+        const registerLink = document.getElementById('registerLink');
+        const registerModal = document.getElementById('registerModal');
+        const closeRegisterModal = document.getElementById('closeRegisterModal');
+        const registerForm = document.getElementById('registerForm');
+        const regUsername = document.getElementById('regUsername');
+        const regEmail = document.getElementById('regEmail');
+        const regPassword = document.getElementById('regPassword');
+        const toggleRegPassword = document.getElementById('toggleRegPassword');
+        const regUsernameError = document.getElementById('regUsernameError');
+        const regEmailError = document.getElementById('regEmailError');
+        const regPasswordError = document.getElementById('regPasswordError');
+        const regMessage = document.getElementById('regMessage');
+
+        // API Request Function
+        async function apiRequest(endpoint, method = 'GET', data = null) {
+            const url = API_BASE + endpoint;
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            };
+
+            if (data) {
+                options.body = JSON.stringify(data);
+            }
+
+            try {
+                const response = await fetch(url, options);
+                const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result.error || '请求失败');
+                }
+                return result;
+            } catch (error) {
+                throw error;
+            }
+        }
+
+        // Password visibility toggle
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+
+        toggleRegPassword.addEventListener('click', function() {
+            const type = regPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+            regPassword.setAttribute('type', type);
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+
+        // Modal controls
+        forgotPassword.addEventListener('click', function(e) {
+            e.preventDefault();
+            forgotPasswordModal.classList.remove('hidden');
+        });
+
+        closeForgotModal.addEventListener('click', function() {
+            forgotPasswordModal.classList.add('hidden');
+            resetForm(forgotPasswordForm);
+        });
+
+        registerLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            registerModal.classList.remove('hidden');
+        });
+
+        closeRegisterModal.addEventListener('click', function() {
+            registerModal.classList.add('hidden');
+            resetForm(registerForm);
+        });
+
+        // Close modals when clicking outside
+        window.addEventListener('click', function(e) {
+            if (e.target === forgotPasswordModal) {
+                forgotPasswordModal.classList.add('hidden');
+                resetForm(forgotPasswordForm);
+            }
+            if (e.target === registerModal) {
+                registerModal.classList.add('hidden');
+                resetForm(registerForm);
+            }
+        });
+
+        // Form validation functions
+        function showError(element, message) {
+            element.textContent = message;
+            element.classList.remove('hidden');
+        }
+
+        function hideError(element) {
+            element.classList.add('hidden');
+        }
+
+        function showMessage(element, message, isSuccess) {
+            element.textContent = message;
+            element.classList.remove('hidden');
+            if (isSuccess) {
+                element.classList.add('success-message');
+                element.classList.remove('error-message');
+            } else {
+                element.classList.add('error-message');
+                element.classList.remove('success-message');
+            }
+        }
+
+        function hideMessage(element) {
+            element.classList.add('hidden');
+        }
+
+        function resetForm(form) {
+            form.reset();
+            const errorElements = form.querySelectorAll('.error-message');
+            errorElements.forEach(element => hideError(element));
+            const messageElement = form.querySelector('[id$="Message"]');
+            if (messageElement) {
+                hideMessage(messageElement);
+            }
+        }
+
+        // Login form validation
+        loginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            let isValid = true;
+
+            // Clear previous errors
+            hideError(usernameError);
+            hideError(passwordError);
+            hideMessage(formMessage);
+
+            // Validate username/email
+            const username = usernameInput.value.trim();
+            if (!username) {
+                showError(usernameError, '请输入用户名或邮箱');
+                isValid = false;
+            }
+
+            // Validate password
+            const password = passwordInput.value;
+            if (!password) {
+                showError(passwordError, '请输入密码');
+                isValid = false;
+            }
+
+            if (isValid) {
+                // Real API call
+                loginButton.disabled = true;
+                loginButton.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i>登录中...';
+
+                try {
+                    // Always use username for login
+                    const loginData = { username, password };
+                    
+                    const response = await apiRequest('/api/auth/login', 'POST', loginData);
+                    
+                    // Store token
+                    localStorage.setItem('jwtToken', response.token);
+                    
+                    // Store user info if needed
+                    if (response.user) {
+                        localStorage.setItem('userInfo', JSON.stringify(response.user));
+                    }
+                    
+                    // Redirect to main app
+                    window.location.href = '错题整理大师V2.0.html';
+                } catch (error) {
+                    showMessage(formMessage, error.message, false);
+                    loginButton.disabled = false;
+                    loginButton.innerHTML = '<i class="fa fa-sign-in mr-2"></i>登录';
+                }
+            }
+        });
+
+        // Forgot password form validation
+        forgotPasswordForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            let isValid = true;
+
+            // Clear previous errors
+            hideError(forgotEmailError);
+            hideMessage(forgotMessage);
+
+            // Validate email
+            const email = forgotEmail.value.trim();
+            if (!email) {
+                showError(forgotEmailError, '请输入邮箱地址');
+                isValid = false;
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showError(forgotEmailError, '请输入有效的邮箱地址');
+                isValid = false;
+            }
+
+            if (isValid) {
+                // Simulate API call
+                const submitButton = this.querySelector('button[type="submit"]');
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i>发送中...';
+
+                // In a real application, this would be an API call
+                setTimeout(() => {
+                    showMessage(forgotMessage, '重置密码链接已发送到您的邮箱', true);
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = '<i class="fa fa-envelope mr-2"></i>发送重置链接';
+                    
+                    // Close modal after 2 seconds
+                    setTimeout(() => {
+                        forgotPasswordModal.classList.add('hidden');
+                        resetForm(forgotPasswordForm);
+                    }, 2000);
+                }, 1500);
+            }
+        });
+
+        // Register form validation
+        registerForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            let isValid = true;
+
+            // Clear previous errors
+            hideError(regUsernameError);
+            hideError(regPasswordError);
+            hideMessage(regMessage);
+
+            // Validate username
+            const username = regUsername.value.trim();
+            if (!username) {
+                showError(regUsernameError, '请输入用户名');
+                isValid = false;
+            } else if (username.length < 3) {
+                showError(regUsernameError, '用户名至少3个字符');
+                isValid = false;
+            }
+
+            // Validate password
+            const password = regPassword.value;
+            if (!password) {
+                showError(regPasswordError, '请输入密码');
+                isValid = false;
+            } else if (password.length < 6) {
+                showError(regPasswordError, '密码至少6个字符');
+                isValid = false;
+            }
+
+            if (isValid) {
+                // Real API call
+                const submitButton = this.querySelector('button[type="submit"]');
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i>注册中...';
+
+                try {
+                    const registerData = {
+                        username,
+                        password
+                    };
+                    
+                    const response = await apiRequest('/api/auth/register', 'POST', registerData);
+                    
+                    showMessage(regMessage, '注册成功，请登录', true);
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = '<i class="fa fa-user-plus mr-2"></i>注册';
+                    
+                    // Close modal after 2 seconds and focus on login form
+                    setTimeout(() => {
+                        registerModal.classList.add('hidden');
+                        resetForm(registerForm);
+                        usernameInput.focus();
+                    }, 2000);
+                } catch (error) {
+                    showMessage(regMessage, error.message, false);
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = '<i class="fa fa-user-plus mr-2"></i>注册';
+                }
+            }
+        });
+
+        // Check if user is already logged in
+        window.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('jwtToken')) {
+                window.location.href = '错题整理大师V2.0.html';
+            }
+        });
+    </script>
+</body>
+</html>
