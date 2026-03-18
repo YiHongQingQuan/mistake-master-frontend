@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CDN测试</title>
+    <!-- 使用新CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="p-8">
+    <h1 class="text-3xl text-green-600">✅ CDN测试成功</h1>
+    <p class="mt-4">时间：<span id="time"></span></p>
+    <p class="mt-2"><i class="fas fa-check text-green-500"></i> Font Awesome图标测试</p>
+    
+    <script>
+        document.getElementById('time').textContent = new Date().toLocaleString();
+        console.log('页面加载成功');
+    </script>
+</body>
+</html>
