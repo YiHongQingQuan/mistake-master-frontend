@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>错题整理大师V1.8</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- Canvas Confetti -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+<style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8; 
+        }
+        
+        /* Smooth transitions */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Line clamp for question stem preview */
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
+<!-- Navigation Bar -->
+<nav class="bg-indigo-600 text-white shadow-lg fixed w-full top-0 z-40">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex items-center justify-between h-16">
+<div class="flex items-center">
+<i class="fa-solid fa-book-open-reader text-2xl mr-3"></i>
+<span class="font-bold text-xl tracking-wide">错题整理大师V2.0</span>
+</div>
+<div class="flex space-x-1 sm:space-x-4">
+<button class="nav-btn px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 transition bg-indigo-700" data-tab="entry" onclick="switchTab('entry')">错题录入</button>
+<button class="nav-btn px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 transition" data-tab="manage" onclick="switchTab('manage')">错题管理</button>
+<button class="nav-btn px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 transition" data-tab="review" onclick="switchTab('review')">错题重做</button>
+<button class="nav-btn px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 transition" data-tab="settings" onclick="switchTab('settings')">数据管理</button>
+</div>
+</div>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-grow pt-20 pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full relative">
+<!-- Module 1: Entry -->
+<section class="tab-content fade-in" id="tab-entry">
+<div class="bg-white rounded-lg shadow-md p-6 max-w-3xl mx-auto">
+<h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2"><i class="fa-solid fa-pen-to-square mr-2 text-indigo-600"></i>录入错题</h2>
+<form id="entryForm" onsubmit="handleEntrySubmit(event)">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+<!-- Subject -->
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-1">科目 <span class="text-red-500">*</span></label>
+<div class="flex gap-2">
+<select class="flex-1 border-gray-300 border rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500" id="entrySubject" onchange="updateEntryDropdowns()" required="">
+<!-- Options populated by JS -->
+</select>
+<button class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 rounded-md transition" onclick="openAddCategoryModal('subject')" title="新建科目" type="button"><i class="fa-solid fa-plus"></i></button>
+</div>
+</div>
+<!-- Knowledge Point -->
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-1">知识点 <span class="text-red-500">*</span></label>
+<div class="flex gap-2">
+<select class="flex-1 border-gray-300 border rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500" id="entryPoint" required="">
+<!-- Options populated by JS -->
+</select>
+<button class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 rounded-md transition" onclick="openAddCategoryModal('point')" title="新建知识点" type="button"><i class="fa-solid fa-plus"></i></button>
+</div>
+</div>
+<!-- Question Type -->
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-1">题型 <span class="text-red-500">*</span></label>
+<div class="flex gap-2">
+<select class="flex-1 border-gray-300 border rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500" id="entryType" required="">
+<!-- Options populated by JS -->
+</select>
+<button class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 rounded-md transition" onclick="openAddCategoryModal('type')" title="新建题型" type="button"><i class="fa-solid fa-plus"></i></button>
+</div>
+</div>
+</div>
+<!-- Question Stem -->
+<div class="mb-4">
+<label class="block text-sm font-medium text-gray-700 mb-1">题干内容 <span class="text-red-500">*</span></label>
+<textarea class="w-full border-gray-300 border rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500" id="entryStem" placeholder="请输入题目内容..." required="" rows="4"></textarea>
+</div>
+<!-- Correct Answer -->
+<div class="mb-4">
+<label class="block text-sm font-medium text-gray-700 mb-1">正确答案 <span class="text-red-500">*</span></label>
+<textarea class="w-full border-gray-300 border rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500" id="entryAnswer" placeholder="请输入正确答案..." required="" rows="3"></textarea>
+</div>
+<!-- Notes/Analysis -->
+<div class="mb-4">
+<label class="block text-sm font-medium text-gray-700 mb-1">笔记/解析（可选）</label>
+<textarea class="w-full border-gray-300 border rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500" id="entryNotes" placeholder="请输入笔记或解析..." rows="3"></textarea>
+</div>
+<!-- Image Upload -->
+<div class="mb-6">
+<label class="block text-sm font-medium text-gray-700 mb-1">图片上传（可选）</label>
+<div class="flex items-center gap-3">
+<input type="file" accept="image/*" class="border-gray-300 border rounded-md shadow-sm p-1" id="entryImage" />
+<span class="text-xs text-gray-500" id="imagePreviewText">未选择图片</span>
+</div>
+</div>
+<div class="flex justify-end">
+<button class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-md shadow transition transform hover:scale-105" type="submit">
+<i class="fa-solid fa-save mr-2"></i>保存错题
+                        </button>
+</div>
+</form>
+</div>
+</section>
+<!-- Module 2: Management -->
+<section class="tab-content hidden fade-in" id="tab-manage">
+<div class="flex flex-col lg:flex-row gap-6 h-[calc(100vh-140px)]">
+<!-- Question List Area -->
+<div class="flex-grow bg-white rounded-lg shadow-md p-6 flex flex-col overflow-hidden">
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 border-b pb-2 gap-2">
+<h2 class="text-2xl font-bold text-gray-800"><i class="fa-solid fa-list-check mr-2 text-indigo-600"></i>错题列表</h2>
+<div class="flex flex-wrap gap-2 items-center w-full sm:w-auto">
+<input type="text" placeholder="搜索错题..." class="border-gray-300 border rounded-md p-1 text-sm flex-grow sm:flex-grow-0" id="searchInput" oninput="renderManageList()" />
+<select class="border-gray-300 border rounded-md p-1 text-sm" id="manageFilterSubject" onchange="renderManageList()">
+<option value="all">所有科目</option>
+</select>
+<button class="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 px-3 py-1 rounded-md text-sm font-medium transition" onclick="toggleCategorySidebar()">
+<i class="fa-solid fa-tags mr-1"></i>分类管理
+                            </button>
+</div>
+</div>
+<!-- List Container -->
+<div class="flex-grow overflow-y-auto pr-2 space-y-4" id="questionListContainer">
+<!-- Question cards will be injected here -->
+</div>
+<!-- Pagination -->
+<div class="mt-4 pt-2 border-t flex justify-between items-center">
+<span class="text-sm text-gray-500" id="paginationInfo">显示 0-0 共 0 题</span>
+<div class="flex gap-2">
+<button class="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50" id="prevPageBtn" onclick="changePage(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+<span class="px-3 py-1" id="pageIndicator">1</span>
+<button class="px-3 py-1 border rounded hover:bg-gray-100 disabled:opacity-50" id="nextPageBtn" onclick="changePage(1)"><i class="fa-solid fa-chevron-right"></i></button>
+</div>
+</div>
+</div>
+<!-- Category Sidebar (Slide-over) -->
+<div class="fixed inset-y-0 right-0 w-80 bg-white shadow-2xl transform translate-x-full transition-transform duration-300 z-30 pt-20 px-6 overflow-y-auto hidden lg:block" id="categorySidebar">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-xl font-bold text-gray-800">分类管理</h3>
+<button class="text-gray-400 hover:text-gray-600" onclick="toggleCategorySidebar()"><i class="fa-solid fa-xmark text-xl"></i></button>
+</div>
+<div id="categoryManagerContent">
+<!-- Dynamic Content for managing subjects/points/types -->
+</div>
+</div>
+</div>
+</section>
+<!-- Module 3: Review -->
+<section class="tab-content hidden fade-in" id="tab-review">
+<div class="max-w-4xl mx-auto">
+<!-- Review Setup Screen -->
+<div class="bg-white rounded-lg shadow-md p-8" id="reviewSetup">
+<h2 class="text-2xl font-bold text-gray-800 mb-6 text-center"><i class="fa-solid fa-rotate-right mr-2 text-indigo-600"></i>错题重做</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-1">选择科目 <span class="text-red-500">*</span></label>
+<select class="w-full border-gray-300 border rounded-md shadow-sm p-2" id="reviewSubject" onchange="updateReviewFilters()" required="">
+<option value="">请选择...</option>
+</select>
+</div>
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-1">知识点 (可选)</label>
+<select class="w-full border-gray-300 border rounded-md shadow-sm p-2" id="reviewPoint">
+<option value="all">不限</option>
+</select>
+</div>
+<div>
+<label class="block text-sm font-medium text-gray-700 mb-1">题型 (可选)</label>
+<select class="w-full border-gray-300 border rounded-md shadow-sm p-2" id="reviewType">
+<option value="all">不限</option>
+</select>
+</div>
+</div>
+<div class="flex justify-center gap-6">
+<button class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow transition transform hover:scale-105" onclick="startReview('all')">
+<i class="fa-solid fa-layer-group mr-2"></i>全部练习
+                        </button>
+<button class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-8 rounded-lg shadow transition transform hover:scale-105" onclick="openRandomCountModal()">
+<i class="fa-solid fa-shuffle mr-2"></i>抽题练习
+                        </button>
+</div>
+</div>
+<!-- Review Interface (Hidden initially) -->
+<div class="hidden" id="reviewInterface">
+<!-- Progress Bar -->
+<div class="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+<div class="bg-indigo-600 h-2.5 rounded-full transition-all duration-300" id="reviewProgressBar" style="width: 0%"></div>
+</div>
+<div class="bg-white rounded-lg shadow-lg p-8 min-h-[400px] flex flex-col">
+<div class="flex justify-between items-start mb-4">
+<div class="flex gap-2">
+<span class="bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-0.5 rounded" id="reviewCurrentSubject">科目</span>
+<span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded" id="reviewCurrentType">题型</span>
+</div>
+<span class="text-gray-500 font-mono" id="reviewCounter">1 / 10</span>
+</div>
+<div class="flex-grow mb-6">
+<h3 class="text-xl font-medium text-gray-900 leading-relaxed whitespace-pre-wrap" id="reviewQuestionStem">题干内容...</h3>
+<div class="mt-4" id="reviewQuestionImage"></div>
+</div>
+<div class="mb-4" id="reviewInputArea">
+<label class="block text-sm font-medium text-gray-700 mb-2">你的答案：</label>
+<textarea class="w-full border-gray-300 border rounded-md shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500" id="reviewUserAnswer" placeholder="输入你的答案..." rows="3"></textarea>
+</div>
+<!-- Feedback Area (Hidden initially) -->
+<div class="hidden mb-6 p-4 rounded-md border" id="reviewFeedback">
+<div class="flex items-center mb-2">
+<span class="text-xl mr-2" id="feedbackIcon"></span>
+<span class="font-bold text-lg" id="feedbackText"></span>
+</div>
+<div class="mt-2">
+<p class="text-sm text-gray-600">正确答案：</p>
+<p class="text-gray-900 font-medium whitespace-pre-wrap" id="feedbackCorrectAnswer"></p>
+</div>
+</div>
+<div class="flex justify-between mt-auto">
+<button class="text-gray-500 hover:text-gray-700 font-medium px-4 py-2 rounded disabled:opacity-30" disabled="" id="btnPrev" onclick="navigateReview(-1)">上一题</button>
+<button class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded shadow transition" id="btnSubmit" onclick="submitAnswer()">提交答案</button>
+<button class="hidden bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded shadow transition" id="btnNext" onclick="navigateReview(1)">下一题</button>
+<button class="hidden bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded shadow transition" id="btnFinish" onclick="finishReview()">完成练习</button>
+</div>
+</div>
+</div>
+<!-- Review Result Screen (Hidden initially) -->
+<div class="hidden bg-white rounded-lg shadow-md p-8 text-center fade-in" id="reviewResult">
+<h2 class="text-3xl font-bold text-gray-800 mb-6">练习结束</h2>
+<div class="flex justify-center gap-8 mb-8">
+<div class="text-center">
+<p class="text-gray-500 text-sm">总题量</p>
+<p class="text-4xl font-bold text-indigo-600" id="resultTotal">0</p>
+</div>
+<div class="text-center">
+<p class="text-gray-500 text-sm">正确数</p>
+<p class="text-4xl font-bold text-green-500" id="resultCorrect">0</p>
+</div>
+<div class="text-center">
+<p class="text-gray-500 text-sm">正确率</p>
+<p class="text-4xl font-bold text-blue-500" id="resultRate">0%</p>
+</div>
+</div>
+<div class="mb-8">
+<h3 class="text-lg font-bold mb-4 text-left">答题详情</h3>
+<div class="max-h-60 overflow-y-auto border rounded-md p-4 text-left space-y-2" id="resultDetails">
+<!-- Details injected here -->
+</div>
+</div>
+<button class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-8 rounded-lg shadow transition" onclick="resetReview()">
+<i class="fa-solid fa-rotate-right mr-2"></i>再来一次
+                    </button>
+</div>
+</div>
+</section>
+<!-- Module 4: Settings (Import/Export) -->
+<section class="tab-content hidden fade-in" id="tab-settings">
+<div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-8">
+<h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2"><i class="fa-solid fa-database mr-2 text-indigo-600"></i>批量导入导出</h2>
+<div class="space-y-8">
+<!-- Export -->
+<div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+<div>
+<h3 class="font-bold text-lg">数据导出</h3>
+<p class="text-sm text-gray-500">将当前所有错题和分类导出为 JSON 文件</p>
+</div>
+<button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded shadow transition" onclick="exportData()">
+<i class="fa-solid fa-download mr-2"></i>导出数据
+                        </button>
+</div>
+<!-- Import -->
+<div class="p-4 bg-gray-50 rounded-lg border">
+<h3 class="font-bold text-lg mb-4">数据导入</h3>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<div>
+<p class="font-medium">添加数据模式</p>
+<p class="text-xs text-gray-500">合并数据，ID相同则提示覆盖</p>
+</div>
+<button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow transition text-sm" onclick="triggerImport('add')">
+<i class="fa-solid fa-file-import mr-2"></i>添加导入
+                                </button>
+</div>
+<div class="flex items-center justify-between">
+<div>
+<p class="font-medium">覆盖数据模式</p>
+<p class="text-xs text-gray-500">清空当前数据并导入新数据</p>
+</div>
+<button class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded shadow transition text-sm" onclick="triggerImport('overwrite')">
+<i class="fa-solid fa-file-import mr-2"></i>覆盖导入
+                                </button>
+</div>
+</div>
+<input accept=".json" class="hidden" id="fileInput" onchange="handleFileSelect(event)" type="file"/>
+</div>
+<!-- Clear Data -->
+<div class="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-100">
+<div>
+<h3 class="font-bold text-lg text-red-700">清空数据</h3>
+<p class="text-sm text-red-500">删除所有本地数据，恢复默认设置</p>
+</div>
+<button class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded shadow transition" onclick="confirmClearData()">
+<i class="fa-solid fa-trash mr-2"></i>清空数据
+                        </button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Modals Container -->
+<div class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4" id="modalOverlay">
+<!-- Dynamic Modal Content -->
+<div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 transform transition-all scale-100" id="modalContent">
+<!-- Content injected via JS -->
+</div>
+</div>
+<!-- Toast Container -->
+<div class="fixed bottom-5 right-5 z-50 flex flex-col gap-2" id="toastContainer"></div>
+<script>
+        // --- API Configuration ---
+        const API_BASE = 'https://test-production-8b64.up.railway.app';
+
+        // API Request Function with JWT Token
+        async function apiRequest(endpoint, method = 'GET', data = null) {
+            const url = API_BASE + endpoint;
+            const token = localStorage.getItem('jwtToken');
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            };
+
+            if (token) {
+                options.headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            if (data) {
+                options.body = JSON.stringify(data);
+            }
+
+            try {
+                const response = await fetch(url, options);
+                const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result.error || '请求失败');
+                }
+                return result;
+            } catch (error) {
+                if (error.message === '认证失败') {
+                    // Token expired or invalid, redirect to login
+                    localStorage.removeItem('jwtToken');
+                    window.location.href = 'login.html';
+                }
+                throw error;
+            }
+        }
+
+        // --- Data & State Management ---
+        
+        const defaultSubjects = {
+            "数学": { points: ["代数", "几何", "概率统计"], types: ["选择题", "填空题", "判断题", "解答题", "计算题"] },
+            "语文": { points: ["基础知识", "阅读理解", "作文"], types: ["选择题", "填空题", "判断题", "解答题", "阅读题"] },
+            "英语": { points: ["词汇", "语法", "写作"], types: ["选择题", "填空题", "阅读题", "写作题"] },
+            "物理": { points: ["力学", "电学", "光学"], types: ["选择题", "填空题", "实验题", "计算题"] },
+            "化学": { points: ["无机", "有机", "实验"], types: ["选择题", "填空题", "实验题", "推断题"] },
+            "生物": { points: ["细胞", "遗传", "生态"], types: ["选择题", "填空题", "判断题", "解答题"] }
+        };
+
+        let appData = {
+            subjects: JSON.parse(JSON.stringify(defaultSubjects)),
+            questions: []
+        };
+
+        let currentPage = 1;
+        const itemsPerPage = 20;
+        let reviewState = {
+            queue: [],
+            currentIndex: 0,
+            results: {}, // { questionId: { userAnswer: string, isCorrect: boolean } }
+            mode: 'all' // 'all' or 'random'
+        };
+
+        // --- Initialization ---
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check if token exists
+            if (!localStorage.getItem('jwtToken')) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                await loadData();
+                initEntryForm();
+                renderManageList();
+                updateReviewFilters();
+            } catch (error) {
+                showToast('数据加载失败: ' + error.message, 'error');
+            }
+            
+            // Add image input change listener
+            document.getElementById('entryImage').addEventListener('change', function(e) {
+                const imagePreviewText = document.getElementById('imagePreviewText');
+                if (this.files && this.files[0]) {
+                    imagePreviewText.textContent = this.files[0].name;
+                } else {
+                    imagePreviewText.textContent = '未选择图片';
+                }
+            });
+        });
+
+        async function loadData() {
+            try {
+                // Load mistakes from API
+                const mistakesResponse = await apiRequest('/api/mistakes');
+                appData.questions = mistakesResponse.mistakes || [];
+                
+                // Load categories from API
+                const categoriesResponse = await apiRequest('/api/categories');
+                const categories = categoriesResponse.categories || [];
+                
+                // Transform categories into appData.subjects structure
+                appData.subjects = {};
+                
+                // Group categories by type
+                const subjects = categories.filter(cat => cat.type === 'subject');
+                const knowledgePoints = categories.filter(cat => cat.type === 'knowledgePoint');
+                const questionTypes = categories.filter(cat => cat.type === 'questionType');
+                
+                // Initialize subjects
+                subjects.forEach(subject => {
+                    appData.subjects[subject.name] = {
+                        points: [],
+                        types: []
+                    };
+                });
+                
+                // Add knowledge points to corresponding subjects
+                // Note: This is a simplified approach - in a real app, you might want to associate knowledge points with specific subjects
+                knowledgePoints.forEach(point => {
+                    // Add to all subjects for now
+                    Object.keys(appData.subjects).forEach(subject => {
+                        appData.subjects[subject].points.push(point.name);
+                    });
+                });
+                
+                // Add question types to all subjects
+                questionTypes.forEach(type => {
+                    Object.keys(appData.subjects).forEach(subject => {
+                        appData.subjects[subject].types.push(type.name);
+                    });
+                });
+                
+                // If no subjects exist, use default ones
+                if (Object.keys(appData.subjects).length === 0) {
+                    appData.subjects = JSON.parse(JSON.stringify(defaultSubjects));
+                }
+            } catch (error) {
+                console.error("Data load error", error);
+                throw error;
+            }
+        }
+
+        // saveData function is no longer needed since we're using API
+
+        // --- UI Helpers ---
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if(btn.dataset.tab === tabId) {
+                    btn.classList.add('bg-indigo-700');
+                } else {
+                    btn.classList.remove('bg-indigo-700');
+                }
+            });
+
+            if (tabId === 'manage') renderManageList();
+            if (tabId === 'review') updateReviewFilters();
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            let bgClass = 'bg-gray-800';
+            let icon = '<i class="fa-solid fa-circle-info"></i>';
+            
+            if (type === 'success') { bgClass = 'bg-green-600'; icon = '<i class="fa-solid fa-circle-check"></i>'; }
+            if (type === 'error') { bgClass = 'bg-red-600'; icon = '<i class="fa-solid fa-circle-exclamation"></i>'; }
+            if (type === 'warning') { bgClass = 'bg-orange-500'; icon = '<i class="fa-solid fa-triangle-exclamation"></i>'; }
+
+            toast.className = `${bgClass} text-white px-6 py-3 rounded shadow-lg flex items-center gap-3 transform transition-all duration-300 translate-y-10 opacity-0`;
+            toast.innerHTML = `${icon} <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            // Animation in
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-10', 'opacity-0');
+            });
+
+            // Auto remove
+            setTimeout(() => {
+                toast.classList.add('translate-y-10', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function showModal(htmlContent) {
+            const overlay = document.getElementById('modalOverlay');
+            const content = document.getElementById('modalContent');
+            content.innerHTML = htmlContent;
+            overlay.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.add('hidden');
+        }
+
+        // --- Module 1: Entry Logic ---
+
+        function initEntryForm() {
+            const subjectSelect = document.getElementById('entrySubject');
+            subjectSelect.innerHTML = '<option value="">请选择科目</option>';
+            Object.keys(appData.subjects).forEach(sub => {
+                const opt = document.createElement('option');
+                opt.value = sub;
+                opt.textContent = sub;
+                subjectSelect.appendChild(opt);
+            });
+            updateEntryDropdowns();
+        }
+
+        function updateEntryDropdowns() {
+            const subject = document.getElementById('entrySubject').value;
+            const pointSelect = document.getElementById('entryPoint');
+            const typeSelect = document.getElementById('entryType');
+
+            pointSelect.innerHTML = '<option value="">请选择知识点</option>';
+            typeSelect.innerHTML = '<option value="">请选择题型</option>';
+
+            if (subject && appData.subjects[subject]) {
+                appData.subjects[subject].points.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p;
+                    opt.textContent = p;
+                    pointSelect.appendChild(opt);
+                });
+                appData.subjects[subject].types.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t;
+                    opt.textContent = t;
+                    typeSelect.appendChild(opt);
+                });
+            }
+        }
+
+        function handleEntrySubmit(e) {
+            e.preventDefault();
+            const newQuestion = {
+                id: Date.now().toString(),
+                subject: document.getElementById('entrySubject').value,
+                point: document.getElementById('entryPoint').value,
+                type: document.getElementById('entryType').value,
+                stem: document.getElementById('entryStem').value,
+                answer: document.getElementById('entryAnswer').value,
+                notes: document.getElementById('entryNotes').value,
+                image: '', // Will be set if image is uploaded
+                date: new Date().toLocaleDateString()
+            };
+
+            // Handle image upload
+            const imageInput = document.getElementById('entryImage');
+            if (imageInput.files && imageInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    newQuestion.image = e.target.result;
+                    saveQuestion(newQuestion);
+                };
+                reader.readAsDataURL(imageInput.files[0]);
+            } else {
+                saveQuestion(newQuestion);
+            }
+        }
+
+        async function saveQuestion(question) {
+            try {
+                // Prepare data for API
+                const apiData = {
+                    questionId: question.id,
+                    questionStem: question.stem,
+                    correctAnswer: question.answer,
+                    userAnswer: '', // Assuming user answer is the same as error reason for now
+                    errorReason: '录入错题',
+                    subject: question.subject,
+                    knowledgePoint: question.point,
+                    questionType: question.type,
+                    errorTime: new Date().toISOString(),
+                    notes: question.notes,
+                    image: question.image
+                };
+                
+                const response = await apiRequest('/api/mistakes', 'POST', apiData);
+                
+                // Add the new question to local state
+                appData.questions.unshift(response.mistake);
+                showToast('错题录入成功！', 'success');
+                
+                // Clear fields but keep selections
+                document.getElementById('entryStem').value = '';
+                document.getElementById('entryAnswer').value = '';
+                document.getElementById('entryNotes').value = '';
+                document.getElementById('entryImage').value = '';
+                document.getElementById('imagePreviewText').textContent = '未选择图片';
+            } catch (error) {
+                showToast('保存失败: ' + error.message, 'error');
+            }
+        }
+
+        function openAddCategoryModal(type) {
+            const subject = document.getElementById('entrySubject').value;
+            if (type !== 'subject' && !subject) {
+                showToast('请先选择科目', 'warning');
+                return;
+            }
+
+            let html = `
+                <h3 class="text-xl font-bold mb-4">新建${type === 'subject' ? '科目' : (type === 'point' ? '知识点' : '题型')}</h3>
+                <input type="text" id="newCatName" class="w-full border p-2 rounded mb-4" placeholder="请输入名称" autofocus>
+                <div class="flex justify-end gap-2">
+                    <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 rounded">取消</button>
+                    <button onclick="addNewCategory('${type}', '${subject || ''}')" class="px-4 py-2 bg-indigo-600 text-white rounded">确定</button>
+                </div>
+            `;
+            showModal(html);
+            
+            // Enter key support
+            setTimeout(() => {
+                document.getElementById('newCatName').addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') addNewCategory(type, subject || '');
+                });
+            }, 100);
+        }
+
+        async function addNewCategory(type, subject) {
+            const name = document.getElementById('newCatName').value.trim();
+            if (!name) return;
+
+            try {
+                // Map type to API category type
+                let categoryType;
+                if (type === 'subject') {
+                    categoryType = 'subject';
+                } else if (type === 'point') {
+                    categoryType = 'knowledgePoint';
+                } else if (type === 'type') {
+                    categoryType = 'questionType';
+                }
+                
+                // Call API to create category
+                const response = await apiRequest('/api/categories', 'POST', {
+                    name,
+                    type: categoryType
+                });
+                
+                // Update local state
+                if (type === 'subject') {
+                    appData.subjects[name] = { points: [], types: [] };
+                } else if (type === 'point') {
+                    // Add to all subjects
+                    Object.keys(appData.subjects).forEach(subj => {
+                        if (!appData.subjects[subj].points.includes(name)) {
+                            appData.subjects[subj].points.push(name);
+                        }
+                    });
+                } else if (type === 'type') {
+                    // Add to all subjects
+                    Object.keys(appData.subjects).forEach(subj => {
+                        if (!appData.subjects[subj].types.includes(name)) {
+                            appData.subjects[subj].types.push(name);
+                        }
+                    });
+                }
+                
+                initEntryForm(); // Refresh dropdowns
+                // Restore selection if possible
+                if (type !== 'subject') {
+                    document.getElementById('entrySubject').value = subject;
+                    updateEntryDropdowns();
+                    document.getElementById('entrySubject').value = subject;
+                    if(type === 'point') document.getElementById('entryPoint').value = name;
+                    if(type === 'type') document.getElementById('entryType').value = name;
+                }
+                closeModal();
+                showToast('添加成功', 'success');
+            } catch (error) {
+                showToast('添加失败: ' + error.message, 'error');
+            }
+        }
+
+        // --- Module 2: Management Logic ---
+
+        function renderManageList() {
+            const container = document.getElementById('questionListContainer');
+            const filterSub = document.getElementById('manageFilterSubject');
+            const searchInput = document.getElementById('searchInput');
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+            
+            // Populate filter if empty
+            if (filterSub.options.length === 1) {
+                Object.keys(appData.subjects).forEach(sub => {
+                    const opt = document.createElement('option');
+                    opt.value = sub;
+                    opt.textContent = sub;
+                    filterSub.appendChild(opt);
+                });
+            }
+
+            // Filter logic
+            let filtered = appData.questions;
+            if (filterSub.value !== 'all') {
+                filtered = filtered.filter(q => q.subject === filterSub.value);
+            }
+            
+            // Search logic
+            if (searchTerm) {
+                filtered = filtered.filter(q => {
+                    return q.stem.toLowerCase().includes(searchTerm) ||
+                           q.answer.toLowerCase().includes(searchTerm) ||
+                           (q.notes && q.notes.toLowerCase().includes(searchTerm)) ||
+                           q.point.toLowerCase().includes(searchTerm) ||
+                           q.type.toLowerCase().includes(searchTerm);
+                });
+            }
+
+            // Pagination logic
+            const total = filtered.length;
+            const totalPages = Math.ceil(total / itemsPerPage) || 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+            
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageItems = filtered.slice(start, end);
+
+            // Update UI info
+            document.getElementById('paginationInfo').textContent = `显示 ${total === 0 ? 0 : start + 1}-${Math.min(end, total)} 共 ${total} 题`;
+            document.getElementById('pageIndicator').textContent = `${currentPage} / ${totalPages}`;
+            document.getElementById('prevPageBtn').disabled = currentPage === 1;
+            document.getElementById('nextPageBtn').disabled = currentPage === totalPages;
+
+            // Render Cards
+            container.innerHTML = '';
+            if (pageItems.length === 0) {
+                container.innerHTML = '<div class="text-center text-gray-400 mt-10">暂无错题数据</div>';
+                return;
+            }
+
+            pageItems.forEach(q => {
+                const card = document.createElement('div');
+                card.className = 'bg-gray-50 border rounded-lg p-4 hover:shadow-md transition relative group';
+                card.innerHTML = `
+                    <div class="flex flex-wrap gap-2 mb-2">
+                        <span class="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded font-semibold">${q.subject}</span>
+                        <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded">${q.point}</span>
+                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">${q.type}</span>
+                        <span class="text-gray-400 text-xs ml-auto">${q.date}</span>
+                    </div>
+                    <div class="text-gray-800 mb-2 line-clamp-3 whitespace-pre-wrap">${q.stem}</div>
+                    ${q.image ? '<div class="mb-2 text-xs text-gray-500"><i class="fa-solid fa-image mr-1"></i> 包含图片</div>' : ''}
+                    <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onclick="editQuestion('${q.id}')" class="text-blue-600 hover:text-blue-800 text-sm"><i class="fa-solid fa-pen"></i> 编辑</button>
+                        <button onclick="deleteQuestion('${q.id}')" class="text-red-600 hover:text-red-800 text-sm"><i class="fa-solid fa-trash"></i> 删除</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function changePage(delta) {
+            currentPage += delta;
+            renderManageList();
+        }
+
+        function deleteQuestion(id) {
+            showModal(`
+                <h3 class="text-xl font-bold mb-4 text-red-600">确认删除</h3>
+                <p class="mb-6">确定要删除这道错题吗？此操作无法撤销。</p>
+                <div class="flex justify-end gap-2">
+                    <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 rounded">取消</button>
+                    <button onclick="confirmDelete('${id}')" class="px-4 py-2 bg-red-600 text-white rounded">删除</button>
+                </div>
+            `);
+        }
+
+        async function confirmDelete(id) {
+            try {
+                await apiRequest(`/api/mistakes/${id}`, 'DELETE');
+                appData.questions = appData.questions.filter(q => q.id !== id);
+                renderManageList();
+                closeModal();
+                showToast('删除成功', 'success');
+            } catch (error) {
+                showToast('删除失败: ' + error.message, 'error');
+                closeModal();
+            }
+        }
+
+        function editQuestion(id) {
+            const q = appData.questions.find(item => item.id === id);
+            if (!q) return;
+
+            // Build options for selects
+            let subOptions = Object.keys(appData.subjects).map(s => `<option value="${s}" ${s===q.subject?'selected':''}>${s}</option>`).join('');
+            
+            // Note: Simplified edit form, points/types depend on subject. 
+            // For simplicity in this modal, we just show text inputs or basic selects.
+            // To be fully compliant with "Edit all fields", we recreate the entry form logic but pre-filled.
+            
+            const html = `
+                <h3 class="text-xl font-bold mb-4">编辑错题</h3>
+                <div class="space-y-3 max-h-[60vh] overflow-y-auto">
+                    <div>
+                        <label class="block text-sm font-medium">科目</label>
+                        <select id="editSubject" class="w-full border p-2 rounded" onchange="updateEditDropdowns()">${subOptions}</select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium">知识点</label>
+                        <select id="editPoint" class="w-full border p-2 rounded"></select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium">题型</label>
+                        <select id="editType" class="w-full border p-2 rounded"></select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium">题干</label>
+                        <textarea id="editStem" rows="3" class="w-full border p-2 rounded">${q.stem}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium">答案</label>
+                        <textarea id="editAnswer" rows="2" class="w-full border p-2 rounded">${q.answer}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium">笔记/解析</label>
+                        <textarea id="editNotes" rows="3" class="w-full border p-2 rounded">${q.notes || ''}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium">图片</label>
+                        <div class="flex items-center gap-3">
+                            <input type="file" accept="image/*" class="border-gray-300 border rounded-md shadow-sm p-1" id="editImage" />
+                            <span class="text-xs text-gray-500" id="editImagePreviewText">${q.image ? '已上传图片' : '未选择图片'}</span>
+                            ${q.image ? '<button type="button" onclick="removeImage()" class="text-xs text-red-500">移除图片</button>' : ''}
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 mt-4">
+                    <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 rounded">取消</button>
+                    <button onclick="saveEdit('${q.id}')" class="px-4 py-2 bg-indigo-600 text-white rounded">保存</button>
+                </div>
+            `;
+            showModal(html);
+            
+            // Populate dependent dropdowns after modal is in DOM
+            setTimeout(() => {
+                updateEditDropdowns(q.subject, q.point, q.type);
+                
+                // Add image input change listener
+                const editImageInput = document.getElementById('editImage');
+                if (editImageInput) {
+                    editImageInput.addEventListener('change', function(e) {
+                        const editImagePreviewText = document.getElementById('editImagePreviewText');
+                        if (this.files && this.files[0]) {
+                            editImagePreviewText.textContent = this.files[0].name;
+                        } else {
+                            editImagePreviewText.textContent = '未选择图片';
+                        }
+                    });
+                }
+            }, 50);
+        }
+
+        function updateEditDropdowns(selectedSub, selectedPoint, selectedType) {
+            const sub = document.getElementById('editSubject').value;
+            const pointSelect = document.getElementById('editPoint');
+            const typeSelect = document.getElementById('editType');
+            
+            pointSelect.innerHTML = '';
+            typeSelect.innerHTML = '';
+
+            if (sub && appData.subjects[sub]) {
+                appData.subjects[sub].points.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p;
+                    opt.textContent = p;
+                    if(p === selectedPoint) opt.selected = true;
+                    pointSelect.appendChild(opt);
+                });
+                appData.subjects[sub].types.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t;
+                    opt.textContent = t;
+                    if(t === selectedType) opt.selected = true;
+                    typeSelect.appendChild(opt);
+                });
+            }
+        }
+
+        function removeImage() {
+            document.getElementById('editImage').value = '';
+            document.getElementById('editImagePreviewText').textContent = '未选择图片';
+            const removeButton = document.querySelector('[onclick="removeImage()"]');
+            if (removeButton) {
+                removeButton.remove();
+            }
+            // Set a flag to indicate image should be removed
+            window.removeImageFlag = true;
+        }
+
+        function saveEdit(id) {
+            const qIndex = appData.questions.findIndex(item => item.id === id);
+            if (qIndex === -1) return;
+
+            const updatedQuestion = {
+                ...appData.questions[qIndex],
+                subject: document.getElementById('editSubject').value,
+                point: document.getElementById('editPoint').value,
+                type: document.getElementById('editType').value,
+                stem: document.getElementById('editStem').value,
+                answer: document.getElementById('editAnswer').value,
+                notes: document.getElementById('editNotes').value
+            };
+
+            // Handle image removal
+            if (window.removeImageFlag) {
+                updatedQuestion.image = '';
+                window.removeImageFlag = false;
+                finalizeSave(id, updatedQuestion);
+                return;
+            }
+
+            // Handle image upload
+            const imageInput = document.getElementById('editImage');
+            if (imageInput.files && imageInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    updatedQuestion.image = e.target.result;
+                    finalizeSave(id, updatedQuestion);
+                };
+                reader.readAsDataURL(imageInput.files[0]);
+            } else {
+                // If no new image is selected, keep the existing one
+                finalizeSave(id, updatedQuestion);
+            }
+        }
+
+        async function finalizeSave(id, updatedQuestion) {
+            try {
+                // Prepare data for API
+                const apiData = {
+                    questionId: updatedQuestion.questionId || updatedQuestion.id,
+                    questionStem: updatedQuestion.stem,
+                    correctAnswer: updatedQuestion.answer,
+                    userAnswer: '', // Assuming user answer is the same as error reason for now
+                    errorReason: '录入错题',
+                    subject: updatedQuestion.subject,
+                    knowledgePoint: updatedQuestion.point,
+                    questionType: updatedQuestion.type,
+                    errorTime: updatedQuestion.errorTime || new Date().toISOString(),
+                    notes: updatedQuestion.notes,
+                    image: updatedQuestion.image
+                };
+                
+                const response = await apiRequest(`/api/mistakes/${id}`, 'PUT', apiData);
+                
+                // Update local state
+                const qIndex = appData.questions.findIndex(item => item.id === id);
+                if (qIndex !== -1) {
+                    appData.questions[qIndex] = response.mistake;
+                }
+                renderManageList();
+                closeModal();
+                showToast('修改成功', 'success');
+            } catch (error) {
+                showToast('修改失败: ' + error.message, 'error');
+                closeModal();
+            }
+        }
+
+        // --- Category Management Sidebar ---
+
+        function toggleCategorySidebar() {
+            const sb = document.getElementById('categorySidebar');
+            sb.classList.toggle('hidden');
+            sb.classList.toggle('translate-x-full');
+            if (!sb.classList.contains('hidden')) {
+                renderCategoryManager();
+            }
+        }
+
+        function renderCategoryManager() {
+            const container = document.getElementById('categoryManagerContent');
+            let html = '';
+
+            Object.keys(appData.subjects).forEach(sub => {
+                html += `
+                    <div class="mb-6 border-b pb-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="font-bold text-lg text-gray-700">${sub}</h4>
+                            <div class="flex gap-2">
+                                <button onclick="renameCategory('subject', '${sub}')" class="text-blue-500 text-xs hover:underline">重命名</button>
+                                <button onclick="deleteCategory('subject', '${sub}')" class="text-red-500 text-xs hover:underline">删除</button>
+                            </div>
+                        </div>
+                        <div class="ml-4 space-y-2">
+                            <div>
+                                <p class="text-xs text-gray-500 font-semibold mb-1">知识点</p>
+                                <div class="flex flex-wrap gap-1">
+                                    ${appData.subjects[sub].points.map(p => `
+                                        <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded border flex items-center gap-1">
+                                            ${p} <button onclick="deleteCategory('point', '${sub}', '${p}')" class="text-gray-400 hover:text-red-500">&times;</button>
+                                        </span>
+                                    `).join('')}
+                                    <button onclick="addCategoryInSidebar('point', '${sub}')" class="text-gray-400 hover:text-indigo-500 text-xs px-1"><i class="fa-solid fa-plus"></i></button>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 font-semibold mb-1">题型</p>
+                                <div class="flex flex-wrap gap-1">
+                                    ${appData.subjects[sub].types.map(t => `
+                                        <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded border flex items-center gap-1">
+                                            ${t} <button onclick="deleteCategory('type', '${sub}', '${t}')" class="text-gray-400 hover:text-red-500">&times;</button>
+                                        </span>
+                                    `).join('')}
+                                    <button onclick="addCategoryInSidebar('type', '${sub}')" class="text-gray-400 hover:text-indigo-500 text-xs px-1"><i class="fa-solid fa-plus"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                <button onclick="addCategoryInSidebar('subject', '')" class="w-full py-2 border-2 border-dashed border-gray-300 text-gray-500 rounded hover:border-indigo-500 hover:text-indigo-500 transition">
+                    <i class="fa-solid fa-plus mr-1"></i> 新建科目
+                </button>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        async function addCategoryInSidebar(type, subject) {
+            // Using custom modal for input
+            openSimpleInputModal(`新建${type === 'subject' ? '科目' : (type === 'point' ? '知识点' : '题型')}`, async (val) => {
+                if(!val) return;
+                
+                try {
+                    // Map type to API category type
+                    let categoryType;
+                    if (type === 'subject') {
+                        categoryType = 'subject';
+                    } else if (type === 'point') {
+                        categoryType = 'knowledgePoint';
+                    } else if (type === 'type') {
+                        categoryType = 'questionType';
+                    }
+                    
+                    // Call API to create category
+                    const response = await apiRequest('/api/categories', 'POST', {
+                        name: val,
+                        type: categoryType
+                    });
+                    
+                    // Update local state
+                    if (type === 'subject') {
+                        appData.subjects[val] = { points: [], types: [] };
+                    } else if (type === 'point') {
+                        // Add to all subjects
+                        Object.keys(appData.subjects).forEach(subj => {
+                            if (!appData.subjects[subj].points.includes(val)) {
+                                appData.subjects[subj].points.push(val);
+                            }
+                        });
+                    } else if (type === 'type') {
+                        // Add to all subjects
+                        Object.keys(appData.subjects).forEach(subj => {
+                            if (!appData.subjects[subj].types.includes(val)) {
+                                appData.subjects[subj].types.push(val);
+                            }
+                        });
+                    }
+                    
+                    renderCategoryManager();
+                    initEntryForm(); // Update main form dropdowns
+                    showToast('添加成功', 'success');
+                } catch (error) {
+                    showToast('添加失败: ' + error.message, 'error');
+                }
+            });
+        }
+
+        async function deleteCategory(type, subject, value) {
+            try {
+                // Map type to API category type
+                let categoryType;
+                if (type === 'subject') {
+                    categoryType = 'subject';
+                } else if (type === 'point') {
+                    categoryType = 'knowledgePoint';
+                } else if (type === 'type') {
+                    categoryType = 'questionType';
+                }
+                
+                // First get all categories to find the ID
+                const categoriesResponse = await apiRequest('/api/categories');
+                const categories = categoriesResponse.categories || [];
+                
+                // Find the category to delete
+                const categoryToDelete = categories.find(cat => 
+                    cat.type === categoryType && cat.name === value
+                );
+                
+                if (!categoryToDelete) {
+                    showToast('分类不存在', 'error');
+                    return;
+                }
+                
+                // Call API to delete category
+                await apiRequest(`/api/categories/${categoryToDelete._id}`, 'DELETE');
+                
+                // Update local state
+                if(type === 'subject') {
+                    delete appData.subjects[subject];
+                } else {
+                    // Remove from all subjects
+                    Object.keys(appData.subjects).forEach(subj => {
+                        const list = type === 'point' ? appData.subjects[subj].points : appData.subjects[subj].types;
+                        const idx = list.indexOf(value);
+                        if(idx > -1) list.splice(idx, 1);
+                    });
+                }
+                
+                renderCategoryManager();
+                initEntryForm();
+                showToast('删除成功', 'success');
+            } catch (error) {
+                showToast('删除失败: ' + error.message, 'error');
+            }
+        }
+
+        async function renameCategory(type, subject, value) {
+            openSimpleInputModal("重命名", async (newVal) => {
+                if(!newVal) return;
+                
+                try {
+                    // Map type to API category type
+                    let categoryType;
+                    if (type === 'subject') {
+                        categoryType = 'subject';
+                    } else if (type === 'point') {
+                        categoryType = 'knowledgePoint';
+                    } else if (type === 'type') {
+                        categoryType = 'questionType';
+                    }
+                    
+                    // First get all categories to find the ID
+                    const categoriesResponse = await apiRequest('/api/categories');
+                    const categories = categoriesResponse.categories || [];
+                    
+                    // Find the category to update
+                    const categoryToUpdate = categories.find(cat => 
+                        cat.type === categoryType && cat.name === value
+                    );
+                    
+                    if (!categoryToUpdate) {
+                        showToast('分类不存在', 'error');
+                        return;
+                    }
+                    
+                    // Call API to update category
+                    await apiRequest(`/api/categories/${categoryToUpdate._id}`, 'PUT', {
+                        name: newVal
+                    });
+                    
+                    // Update local state
+                    if(type === 'subject') {
+                        appData.subjects[newVal] = appData.subjects[subject];
+                        delete appData.subjects[subject];
+                        // Update questions
+                        appData.questions.forEach(q => { if(q.subject === subject) q.subject = newVal; });
+                    } else {
+                        // Update in all subjects
+                        Object.keys(appData.subjects).forEach(subj => {
+                            const list = type === 'point' ? appData.subjects[subj].points : appData.subjects[subj].types;
+                            const idx = list.indexOf(value);
+                            if(idx > -1) list[idx] = newVal;
+                        });
+                        // Update questions
+                        const field = type === 'point' ? 'knowledgePoint' : 'questionType';
+                        appData.questions.forEach(q => { if(q[field] === value) q[field] = newVal; });
+                    }
+                    
+                    renderCategoryManager();
+                    initEntryForm();
+                    showToast('重命名成功', 'success');
+                } catch (error) {
+                    showToast('重命名失败: ' + error.message, 'error');
+                }
+            }, value);
+        }
+
+        function openSimpleInputModal(title, callback, defaultValue = '') {
+            const html = `
+                <h3 class="text-lg font-bold mb-4">${title}</h3>
+                <input type="text" id="simpleInput" class="w-full border p-2 rounded mb-4" value="${defaultValue}">
+                <div class="flex justify-end gap-2">
+                    <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 rounded">取消</button>
+                    <button id="simpleInputConfirm" class="px-4 py-2 bg-indigo-600 text-white rounded">确定</button>
+                </div>
+            `;
+            showModal(html);
+            const input = document.getElementById('simpleInput');
+            input.focus();
+            input.select();
+            
+            const confirm = () => {
+                callback(input.value.trim());
+                closeModal();
+            };
+
+            document.getElementById('simpleInputConfirm').onclick = confirm;
+            input.onkeypress = (e) => { if(e.key === 'Enter') confirm(); };
+        }
+
+        // --- Module 3: Review Logic ---
+
+        function updateReviewFilters() {
+            const subSelect = document.getElementById('reviewSubject');
+            const currentVal = subSelect.value;
+            
+            subSelect.innerHTML = '<option value="">请选择科目...</option>';
+            Object.keys(appData.subjects).forEach(sub => {
+                const opt = document.createElement('option');
+                opt.value = sub;
+                opt.textContent = sub;
+                subSelect.appendChild(opt);
+            });
+            
+            if(currentVal) subSelect.value = currentVal;
+            
+            const sub = subSelect.value;
+            const pointSelect = document.getElementById('reviewPoint');
+            const typeSelect = document.getElementById('reviewType');
+
+            pointSelect.innerHTML = '<option value="all">不限</option>';
+            typeSelect.innerHTML = '<option value="all">不限</option>';
+
+            if (sub && appData.subjects[sub]) {
+                appData.subjects[sub].points.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p;
+                    opt.textContent = p;
+                    pointSelect.appendChild(opt);
+                });
+                appData.subjects[sub].types.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t;
+                    opt.textContent = t;
+                    typeSelect.appendChild(opt);
+                });
+            }
+        }
+
+        function openRandomCountModal() {
+            const html = `
+                <h3 class="text-xl font-bold mb-4">抽题练习</h3>
+                <p class="mb-2 text-gray-600">请输入抽题数量：</p>
+                <input type="number" id="randomCount" class="w-full border p-2 rounded mb-4" min="1" max="100">
+                <div class="flex justify-end gap-2">
+                    <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 rounded">取消</button>
+                    <button onclick="startReview('random')" class="px-4 py-2 bg-indigo-600 text-white rounded">开始</button>
+                </div>
+            `;
+            showModal(html);
+            setTimeout(() => document.getElementById('randomCount').focus(), 100);
+        }
+
+        function startReview(mode) {
+            const subject = document.getElementById('reviewSubject').value;
+            if (!subject) {
+                showToast('请选择科目', 'warning');
+                return;
+            }
+
+            const point = document.getElementById('reviewPoint').value;
+            const type = document.getElementById('reviewType').value;
+
+            // Filter questions
+            let pool = appData.questions.filter(q => q.subject === subject);
+            if (point !== 'all') pool = pool.filter(q => q.point === point);
+            if (type !== 'all') pool = pool.filter(q => q.type === type);
+
+            if (pool.length === 0) {
+                showToast('没有符合条件的错题', 'info');
+                return;
+            }
+
+            // Determine queue
+            if (mode === 'random') {
+                const countInput = document.getElementById('randomCount');
+                let count = parseInt(countInput ? countInput.value : 10);
+                if (isNaN(count) || count < 1) count = 10;
+                // Shuffle
+                pool = pool.sort(() => 0.5 - Math.random());
+                reviewState.queue = pool.slice(0, Math.min(count, pool.length));
+                closeModal();
+            } else {
+                reviewState.queue = pool;
+            }
+
+            // Reset state
+            reviewState.currentIndex = 0;
+            reviewState.results = {};
+            reviewState.mode = mode;
+
+            // Switch UI
+            document.getElementById('reviewSetup').classList.add('hidden');
+            document.getElementById('reviewResult').classList.add('hidden');
+            document.getElementById('reviewInterface').classList.remove('hidden');
+            
+            loadReviewQuestion();
+        }
+
+        function loadReviewQuestion() {
+            const q = reviewState.queue[reviewState.currentIndex];
+            const total = reviewState.queue.length;
+            
+            // Update Header
+            document.getElementById('reviewCurrentSubject').textContent = q.subject;
+            document.getElementById('reviewCurrentType').textContent = q.type;
+            document.getElementById('reviewCounter').textContent = `${reviewState.currentIndex + 1} / ${total}`;
+            document.getElementById('reviewProgressBar').style.width = `${((reviewState.currentIndex) / total) * 100}%`;
+
+            // Content
+            document.getElementById('reviewQuestionStem').textContent = q.stem;
+            
+            // Image
+            const imageContainer = document.getElementById('reviewQuestionImage');
+            if (q.image) {
+                imageContainer.innerHTML = `<img src="${q.image}" alt="题目图片" class="max-w-full max-h-60 object-contain rounded-md border">`;
+            } else {
+                imageContainer.innerHTML = '';
+            }
+            
+            // Input Area
+            const inputArea = document.getElementById('reviewInputArea');
+            const feedback = document.getElementById('reviewFeedback');
+            const btnSubmit = document.getElementById('btnSubmit');
+            const btnNext = document.getElementById('btnNext');
+            const btnFinish = document.getElementById('btnFinish');
+            const btnPrev = document.getElementById('btnPrev');
+
+            inputArea.classList.remove('hidden');
+            feedback.classList.add('hidden');
+            btnSubmit.classList.remove('hidden');
+            btnNext.classList.add('hidden');
+            
+            // Check if already answered
+            if (reviewState.results[q.id]) {
+                // Show result state
+                document.getElementById('reviewUserAnswer').value = reviewState.results[q.id].userAnswer;
+                showFeedback(q, reviewState.results[q.id].userAnswer);
+                inputArea.classList.add('hidden'); // Hide input to prevent re-edit (optional, but cleaner)
+                btnSubmit.classList.add('hidden');
+                
+                if (reviewState.currentIndex < total - 1) {
+                    btnNext.classList.remove('hidden');
+                } else {
+                    btnFinish.classList.remove('hidden');
+                }
+            } else {
+                document.getElementById('reviewUserAnswer').value = '';
+                btnFinish.classList.add('hidden');
+                btnNext.classList.add('hidden');
+            }
+
+            // Prev Button
+            btnPrev.disabled = reviewState.currentIndex === 0;
+        }
+
+        function submitAnswer() {
+            const q = reviewState.queue[reviewState.currentIndex];
+            const userAns = document.getElementById('reviewUserAnswer').value.trim();
+            
+            if (!userAns) {
+                showToast('请输入答案', 'warning');
+                return;
+            }
+
+            // Simple string comparison. In a real app, this might be more complex.
+            const isCorrect = userAns === q.answer.trim();
+            
+            reviewState.results[q.id] = {
+                userAnswer: userAns,
+                isCorrect: isCorrect
+            };
+
+            showFeedback(q, userAns);
+            
+            document.getElementById('reviewInputArea').classList.add('hidden');
+            document.getElementById('btnSubmit').classList.add('hidden');
+
+            const total = reviewState.queue.length;
+            if (reviewState.currentIndex < total - 1) {
+                document.getElementById('btnNext').classList.remove('hidden');
+            } else {
+                document.getElementById('btnFinish').classList.remove('hidden');
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+
+        function showFeedback(q, userAns) {
+            const feedback = document.getElementById('reviewFeedback');
+            const icon = document.getElementById('feedbackIcon');
+            const text = document.getElementById('feedbackText');
+            const correctTxt = document.getElementById('feedbackCorrectAnswer');
+
+            feedback.classList.remove('hidden', 'bg-green-50', 'border-green-200', 'bg-red-50', 'border-red-200');
+            
+            const isCorrect = userAns === q.answer.trim();
+
+            if (isCorrect) {
+                feedback.classList.add('bg-green-50', 'border-green-200');
+                icon.innerHTML = '<i class="fa-solid fa-circle-check text-green-600"></i>';
+                text.textContent = '回答正确！';
+                text.className = 'font-bold text-lg text-green-700';
+            } else {
+                feedback.classList.add('bg-red-50', 'border-red-200');
+                icon.innerHTML = '<i class="fa-solid fa-circle-xmark text-red-600"></i>';
+                text.textContent = '回答错误';
+                text.className = 'font-bold text-lg text-red-700';
+            }
+            correctTxt.textContent = q.answer;
+        }
+
+        function navigateReview(dir) {
+            reviewState.currentIndex += dir;
+            loadReviewQuestion();
+        }
+
+        function finishReview() {
+            document.getElementById('reviewInterface').classList.add('hidden');
+            document.getElementById('reviewResult').classList.remove('hidden');
+
+            const total = reviewState.queue.length;
+            let correct = 0;
+            const detailsContainer = document.getElementById('resultDetails');
+            detailsContainer.innerHTML = '';
+
+            reviewState.queue.forEach((q, idx) => {
+                const res = reviewState.results[q.id];
+                if (res && res.isCorrect) correct++;
+
+                const div = document.createElement('div');
+                div.className = `p-3 rounded border ${res && res.isCorrect ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`;
+                div.innerHTML = `
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="font-bold text-sm">第 ${idx+1} 题</span>
+                        <span class="${res && res.isCorrect ? 'text-green-600' : 'text-red-600'} text-xs font-bold">
+                            ${res && res.isCorrect ? '正确' : '错误'}
+                        </span>
+                    </div>
+                    <p class="text-xs text-gray-600 line-clamp-2 mb-1">${q.stem}</p>
+                    <p class="text-xs"><span class="font-semibold">你的答案：</span>${res ? res.userAnswer : '未作答'}</p>
+                    ${(!res || !res.isCorrect) ? `<p class="text-xs text-green-700"><span class="font-semibold">正确答案：</span>${q.answer}</p>` : ''}
+                `;
+                detailsContainer.appendChild(div);
+            });
+
+            document.getElementById('resultTotal').textContent = total;
+            document.getElementById('resultCorrect').textContent = correct;
+            document.getElementById('resultRate').textContent = total === 0 ? '0%' : Math.round((correct / total) * 100) + '%';
+        }
+
+        function resetReview() {
+            document.getElementById('reviewResult').classList.add('hidden');
+            document.getElementById('reviewSetup').classList.remove('hidden');
+            reviewState.queue = [];
+            reviewState.results = {};
+            reviewState.currentIndex = 0;
+        }
+
+        // --- Module 4: Import/Export Logic ---
+
+        function exportData() {
+            const dataStr = JSON.stringify(appData, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            
+            const date = new Date().toISOString().split('T')[0];
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `错题备份_${date}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('导出成功', 'success');
+        }
+
+        let importMode = 'add'; // 'add' or 'overwrite'
+        
+        function triggerImport(mode) {
+            importMode = mode;
+            if (mode === 'overwrite') {
+                showModal(`
+                    <h3 class="text-xl font-bold mb-4 text-red-600">危险操作确认</h3>
+                    <p class="mb-6">此操作将清空所有现有数据，是否继续？</p>
+                    <div class="flex justify-end gap-2">
+                        <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 rounded">取消</button>
+                        <button onclick="confirmOverwrite()" class="px-4 py-2 bg-red-600 text-white rounded">继续</button>
+                    </div>
+                `);
+            } else {
+                document.getElementById('fileInput').click();
+            }
+        }
+
+        function confirmOverwrite() {
+            closeModal();
+            document.getElementById('fileInput').click();
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    if (!importedData.subjects || !importedData.questions) {
+                        throw new Error('Invalid format');
+                    }
+
+                    if (importMode === 'overwrite') {
+                        appData = importedData;
+                        saveData();
+                        showToast('数据覆盖成功', 'success');
+                    } else {
+                        // Add Mode - Check ID conflicts
+                        const existingIds = new Set(appData.questions.map(q => q.id));
+                        const newIds = new Set(importedData.questions.map(q => q.id));
+                        let hasConflict = false;
+                        for (let id of newIds) {
+                            if (existingIds.has(id)) {
+                                hasConflict = true;
+                                break;
+                            }
+                        }
+
+                        if (hasConflict) {
+                            showModal(`
+                                <h3 class="text-xl font-bold mb-4 text-orange-600">ID冲突检测</h3>
+                                <p class="mb-6">存在ID相同的题目，继续导入新题目会覆盖ID相同的旧题目，是否继续？</p>
+                                <div class="flex justify-end gap-2">
+                                    <button onclick="closeModal(); resetFileInput();" class="px-4 py-2 bg-gray-200 rounded">取消</button>
+                                    <button onclick="executeMerge(importedData)" class="px-4 py-2 bg-orange-600 text-white rounded">继续</button>
+                                </div>
+                            `);
+                        } else {
+                            executeMerge(importedData);
+                        }
+                    }
+
+                    // Refresh UI
+                    initEntryForm();
+                    renderManageList();
+                    updateReviewFilters();
+
+                } catch (err) {
+                    showToast('文件格式错误', 'error');
+                    console.error(err);
+                }
+                resetFileInput();
+            };
+            reader.readAsText(file);
+        }
+
+        function executeMerge(newData) {
+            closeModal();
+            // Merge Subjects (Simple union strategy for categories)
+            for (let sub in newData.subjects) {
+                if (!appData.subjects[sub]) {
+                    appData.subjects[sub] = newData.subjects[sub];
+                } else {
+                    // Merge points and types
+                    newData.subjects[sub].points.forEach(p => {
+                        if (!appData.subjects[sub].points.includes(p)) appData.subjects[sub].points.push(p);
+                    });
+                    newData.subjects[sub].types.forEach(t => {
+                        if (!appData.subjects[sub].types.includes(t)) appData.subjects[sub].types.push(t);
+                    });
+                }
+            }
+
+            // Merge Questions (Overwrite by ID)
+            const existingMap = new Map(appData.questions.map(q => [q.id, q]));
+            newData.questions.forEach(q => {
+                existingMap.set(q.id, q);
+            });
+            appData.questions = Array.from(existingMap.values());
+
+            saveData();
+            showToast('数据导入成功', 'success');
+        }
+
+        function resetFileInput() {
+            document.getElementById('fileInput').value = '';
+        }
+
+        function confirmClearData() {
+            showModal(`
+                <h3 class="text-xl font-bold mb-4 text-red-600">确认清空</h3>
+                <p class="mb-6">确定要清除所有本地数据吗？此操作无法撤销。</p>
+                <div class="flex justify-end gap-2">
+                    <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 rounded">取消</button>
+                    <button onclick="executeClearData()" class="px-4 py-2 bg-red-600 text-white rounded">确定清空</button>
+                </div>
+            `);
+        }
+
+        function executeClearData() {
+            closeModal();
+            appData = {
+                subjects: JSON.parse(JSON.stringify(defaultSubjects)),
+                questions: []
+            };
+            saveData();
+            initEntryForm();
+            renderManageList();
+            updateReviewFilters();
+            showToast('数据已清空', 'success');
+        }
+
+    </script>
+</body>
+</html>
